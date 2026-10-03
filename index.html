@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Hasil Ujian PTS Siswa</title>
+    <!-- Font & Icon -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header i {
+            font-size: 45px;
+            color: #38bdf8;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .header p {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+        button {
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: none;
+            background: #38bdf8;
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #7dd3fc;
+            transform: translateY(-1px);
+        }
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .result-card {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .student-info {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 20px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            border-left: 4px solid #38bdf8;
+        }
+        .student-info div {
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .student-info div:last-child {
+            margin-bottom: 0;
+        }
+        .student-info strong {
+            color: #cbd5e1;
+        }
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .score-item {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 14px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .score-item span {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .score-item strong {
+            font-size: 16px;
+            color: #38bdf8;
+        }
+        .rank-card {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            padding: 16px;
+            border-radius: 14px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        @media (max-width: 480px) {
+            .scores-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-box {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <h1>Portal Hasil Ujian PTS</h1>
+        <p>Masukkan Nomor Induk Siswa Nasional (NISN) untuk melihat hasil</p>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="nisnInput" placeholder="Masukkan NISN (contoh: 154626032)" onkeypress="handleKeyPress(event)">
+        <button onclick="cariNilai()"><i class="fa-solid fa-magnifying-glass"></i> Cari</button>
+    </div>
+
+    <div id="errorMsg" class="error-msg">
+        NISN tidak ditemukan. Periksa kembali nomor yang dimasukkan!
+    </div>
+
+    <div id="resultCard" class="result-card">
+        <div class="student-info">
+            <div><strong>NAMA SISWA:</strong> <span id="resNama" style="color:#fff; font-size:16px; font-weight:600;"></span></div>
+            <div><strong>NISN:</strong> <span id="resNisn" style="color:#fff;"></span></div>
+        </div>
+
+        <div class="scores-grid">
+            <div class="score-item"><span>Bahasa Indonesia</span><strong id="resIndo"></strong></div>
+            <div class="score-item"><span>Matematika</span><strong id="resMtk"></strong></div>
+            <div class="score-item"><span>IPAS</span><strong id="resIpas"></strong></div>
+            <div class="score-item"><span>PPKN</span><strong id="resPpkn"></strong></div>
+            <div class="score-item"><span>B. Jawa</span><strong id="resJawa"></strong></div>
+            <div class="score-item"><span>B. Inggris</span><strong id="resInggris"></strong></div>
+        </div>
+
+        <div class="rank-card">
+            🏆 Peringkat Kelas: <span id="resPeringkat"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Data seluruh siswa dari file Excel
+    const dataSiswa = [
+  {"NISN": 154626032, "NAMA SISWA": "ADEVA AFSHEEN MYESHA", "BAHASA INDONESIA": 87, "MATEMATIKA": 40.0, "IPAS": 34, "PPKN": 56, "B. JAWA": 44, "B. INGGRIS": 62, "PERINGKAT": 16},
+  {"NISN": 153502315, "NAMA SISWA": "ADRIAN PRADIPTA AMZARI", "BAHASA INDONESIA": 95, "MATEMATIKA": 61.7, "IPAS": 64, "PPKN": 58, "B. JAWA": 50, "B. INGGRIS": 78, "PERINGKAT": 5},
+  {"NISN": 141018034, "NAMA SISWA": "AISYAH NOREEN PUTRI WIJAYANTI", "BAHASA INDONESIA": 73, "MATEMATIKA": 41.7, "IPAS": 26, "PPKN": 42, "B. JAWA": 34, "B. INGGRIS": 42, "PERINGKAT": 24},
+  {"NISN": 146974848, "NAMA SISWA": "ARFA RAMADHANI MUZAKHY", "BAHASA INDONESIA": 53, "MATEMATIKA": 36.7, "IPAS": 20, "PPKN": 10, "B. JAWA": 22, "B. INGGRIS": 38, "PERINGKAT": 34},
+  {"NISN": 132547530, "NAMA SISWA": "ARYA DWI PRAYUDHA", "BAHASA INDONESIA": 88, "MATEMATIKA": 36.7, "IPAS": 66, "PPKN": 76, "B. JAWA": 40, "B. INGGRIS": 80, "PERINGKAT": 7},
+  {"NISN": 144726588, "NAMA SISWA": "AZ ZAHRA QUEENA RAVEENA WIJAYA", "BAHASA INDONESIA": 87, "MATEMATIKA": 50.0, "IPAS": 44, "PPKN": 38, "B. JAWA": 44, "B. INGGRIS": 62, "PERINGKAT": 17},
+  {"NISN": 156324269, "NAMA SISWA": "BILAL ABIYYU ZULVIAN", "BAHASA INDONESIA": 90, "MATEMATIKA": 53.3, "IPAS": 46, "PPKN": 52, "B. JAWA": 42, "B. INGGRIS": 66, "PERINGKAT": 14},
+  {"NISN": 147514332, "NAMA SISWA": "DANANG SETIAWAN", "BAHASA INDONESIA": 81, "MATEMATIKA": 33.3, "IPAS": 18, "PPKN": 34, "B. JAWA": 28, "B. INGGRIS": 28, "PERINGKAT": 29},
+  {"NISN": 144574937, "NAMA SISWA": "DAYINTA AURELIA SANI", "BAHASA INDONESIA": 70, "MATEMATIKA": 51.7, "IPAS": 46, "PPKN": 38, "B. JAWA": 34, "B. INGGRIS": 60, "PERINGKAT": 20},
+  {"NISN": 153093229, "NAMA SISWA": "DESTHA ADITYA FEBRIAN", "BAHASA INDONESIA": 70, "MATEMATIKA": 20.0, "IPAS": 14, "PPKN": 34, "B. JAWA": 20, "B. INGGRIS": 24, "PERINGKAT": 33},
+  {"NISN": 145115160, "NAMA SISWA": "FADHIL MUSAFA AL ZAFRAN", "BAHASA INDONESIA": 85, "MATEMATIKA": 68.3, "IPAS": 60, "PPKN": 66, "B. JAWA": 48, "B. INGGRIS": 84, "PERINGKAT": 4},
+  {"NISN": 145292451, "NAMA SISWA": "FATMAWATI HASANAH", "BAHASA INDONESIA": 73, "MATEMATIKA": 26.7, "IPAS": 32, "PPKN": 58, "B. JAWA": 34, "B. INGGRIS": 42, "PERINGKAT": 23},
+  {"NISN": 144670679, "NAMA SISWA": "FAZLE MAULA ARSHAD", "BAHASA INDONESIA": 80, "MATEMATIKA": 35.0, "IPAS": 42, "PPKN": 38, "B. JAWA": 34, "B. INGGRIS": 52, "PERINGKAT": 22},
+  {"NISN": 149258273, "NAMA SISWA": "GANIA FARIZKY ANINDYA", "BAHASA INDONESIA": 85, "MATEMATIKA": 61.7, "IPAS": 64, "PPKN": 70, "B. JAWA": 44, "B. INGGRIS": 92, "PERINGKAT": 3},
+  {"NISN": 153400583, "NAMA SISWA": "GHIBRAN RAFASYA ANGGARA", "BAHASA INDONESIA": 88, "MATEMATIKA": 48.3, "IPAS": 48, "PPKN": 60, "B. JAWA": 36, "B. INGGRIS": 76, "PERINGKAT": 10},
+  {"NISN": 149491771, "NAMA SISWA": "GIBRAN ADITYA AL BUKHORI", "BAHASA INDONESIA": 88, "MATEMATIKA": 40.0, "IPAS": 44, "PPKN": 44, "B. JAWA": 44, "B. INGGRIS": 64, "PERINGKAT": 15},
+  {"NISN": 148332155, "NAMA SISWA": "HENDRIK IRAWAN", "BAHASA INDONESIA": 67, "MATEMATIKA": 26.7, "IPAS": 26, "PPKN": 40, "B. JAWA": 22, "B. INGGRIS": 22, "PERINGKAT": 31},
+  {"NISN": 144211116, "NAMA SISWA": "KAYLA FATHIMATUZ ZAHRA", "BAHASA INDONESIA": 93, "MATEMATIKA": 55.0, "IPAS": 56, "PPKN": 68, "B. JAWA": 42, "B. INGGRIS": 80, "PERINGKAT": 6},
+  {"NISN": 146416047, "NAMA SISWA": "KAYLA SHAKILA KHAIRUNISA", "BAHASA INDONESIA": 90, "MATEMATIKA": 45.0, "IPAS": 42, "PPKN": 56, "B. JAWA": 40, "B. INGGRIS": 70, "PERINGKAT": 11},
+  {"NISN": 144078832, "NAMA SISWA": "KENZO AHMAD ZAQI SULAIMAN", "BAHASA INDONESIA": 91, "MATEMATIKA": 73.3, "IPAS": 78, "PPKN": 72, "B. JAWA": 48, "B. INGGRIS": 90, "PERINGKAT": 1},
+  {"NISN": 148810793, "NAMA SISWA": "KEYLA ADELIA NAFISA", "BAHASA INDONESIA": 80, "MATEMATIKA": 46.7, "IPAS": 44, "PPKN": 48, "B. JAWA": 36, "B. INGGRIS": 52, "PERINGKAT": 19},
+  {"NISN": 145229643, "NAMA SISWA": "M. RAFI PRATAMA", "BAHASA INDONESIA": 76, "MATEMATIKA": 28.3, "IPAS": 24, "PPKN": 46, "B. JAWA": 28, "B. INGGRIS": 38, "PERINGKAT": 28},
+  {"NISN": 147774797, "NAMA SISWA": "MAULANA ADI SETIAWAN", "BAHASA INDONESIA": 73, "MATEMATIKA": 48.3, "IPAS": 32, "PPKN": 22, "B. JAWA": 30, "B. INGGRIS": 40, "PERINGKAT": 27},
+  {"NISN": 147572765, "NAMA SISWA": "MICHAEL WAHYU SETYAWAN", "BAHASA INDONESIA": 58, "MATEMATIKA": 28.3, "IPAS": 28, "PPKN": 24, "B. JAWA": 22, "B. INGGRIS": 32, "PERINGKAT": 32},
+  {"NISN": 149303507, "NAMA SISWA": "MUHAMMAD FAQIH", "BAHASA INDONESIA": 92, "MATEMATIKA": 43.3, "IPAS": 50, "PPKN": 50, "B. JAWA": 38, "B. INGGRIS": 76, "PERINGKAT": 9},
+  {"NISN": 147514332, "NAMA SISWA": "MUHAMMAD GILANG RAMADHAN", "BAHASA INDONESIA": 87, "MATEMATIKA": 38.3, "IPAS": 34, "PPKN": 30, "B. JAWA": 28, "B. INGGRIS": 50, "PERINGKAT": 21},
+  {"NISN": 147726598, "NAMA SISWA": "MUHAMMAD RAYA BAGUS PERDANA", "BAHASA INDONESIA": 82, "MATEMATIKA": 30.0, "IPAS": 34, "PPKN": 28, "B. JAWA": 28, "B. INGGRIS": 54, "PERINGKAT": 25},
+  {"NISN": 146141364, "NAMA SISWA": "NAUFAL ABIYYU ATHARIZZ", "BAHASA INDONESIA": 90, "MATEMATIKA": 43.3, "IPAS": 44, "PPKN": 56, "B. JAWA": 42, "B. INGGRIS": 72, "PERINGKAT": 12},
+  {"NISN": 148111234, "NAMA SISWA": "NEISA AZAHRA SHIFA MECCA", "BAHASA INDONESIA": 88, "MATEMATIKA": 41.7, "IPAS": 42, "PPKN": 52, "B. JAWA": 38, "B. INGGRIS": 70, "PERINGKAT": 13},
+  {"NISN": 141973656, "NAMA SISWA": "NUR RACHMASARI SAPUTRI", "BAHASA INDONESIA": 82, "MATEMATIKA": 35.0, "IPAS": 38, "PPKN": 52, "B. JAWA": 30, "B. INGGRIS": 44, "PERINGKAT": 20},
+  {"NISN": 144574937, "NAMA SISWA": "RAFANDA AFNAN ABILASAN", "BAHASA INDONESIA": 80, "MATEMATIKA": 46.7, "IPAS": 46, "PPKN": 50, "B. JAWA": 36, "B. INGGRIS": 52, "PERINGKAT": 18},
+  {"NISN": 143891461, "NAMA SISWA": "SALVA SALSABILA", "BAHASA INDONESIA": 80, "MATEMATIKA": 35.0, "IPAS": 30, "PPKN": 44, "B. JAWA": 32, "B. INGGRIS": 48, "PERINGKAT": 26},
+  {"NISN": 158141209, "NAMA SISWA": "SYAFIQ ANIZAR KHAFIDI", "BAHASA INDONESIA": 88, "MATEMATIKA": 41.7, "IPAS": 40, "PPKN": 52, "B. JAWA": 42, "B. INGGRIS": 82, "PERINGKAT": 8},
+  {"NISN": 148011233, "NAMA SISWA": "TITAN ADITYA WIRA SATYA", "BAHASA INDONESIA": 95, "MATEMATIKA": 66.7, "IPAS": 70, "PPKN": 66, "B. JAWA": 50, "B. INGGRIS": 88, "PERINGKAT": 2},
+  {"NISN": 146132483, "NAMA SISWA": "ZAKI MAULANA MALIK", "BAHASA INDONESIA": 68, "MATEMATIKA": 28.3, "IPAS": 28, "PPKN": 32, "B. JAWA": 22, "B. INGGRIS": 32, "PERINGKAT": 30}
+];
+
+    function cariNilai() {
+        const nisnVal = document.getElementById('nisnInput').value.trim();
+        const errorMsg = document.getElementById('errorMsg');
+        const resultCard = document.getElementById('resultCard');
+
+        if (!nisnVal) {
+            errorMsg.innerText = "Harap masukkan NISN terlebih dahulu!";
+            errorMsg.style.display = 'block';
+            resultCard.style.display = 'none';
+            return;
+        }
+
+        const siswa = dataSiswa.find(s => String(s.NISN) === nisnVal);
+
+        if (siswa) {
+            errorMsg.style.display = 'none';
+            
+            document.getElementById('resNama').innerText = siswa['NAMA SISWA'];
+            document.getElementById('resNisn').innerText = siswa['NISN'];
+            document.getElementById('resIndo').innerText = siswa['BAHASA INDONESIA'];
+            document.getElementById('resMtk').innerText = siswa['MATEMATIKA'];
+            document.getElementById('resIpas').innerText = siswa['IPAS'];
+            document.getElementById('resPpkn').innerText = siswa['PPKN'];
+            document.getElementById('resJawa').innerText = siswa['B. JAWA'];
+            document.getElementById('resInggris').innerText = siswa['B. INGGRIS'];
+            document.getElementById('resPeringkat').innerText = siswa['PERINGKAT'];
+
+            resultCard.style.display = 'block';
+        } else {
+            errorMsg.innerText = "Data NISN '" + nisnVal + "' tidak ditemukan!";
+            errorMsg.style.display = 'block';
+            resultCard.style.display = 'none';
+        }
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            cariNilai();
+        }
+    }
+</script>
+
+</body>
+</html>
