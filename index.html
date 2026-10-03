@@ -1,101 +1,304 @@
-import streamlit as st
-import pandas as pd
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Hasil Ujian PTS - SDN LARANGAN 05</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header i {
+            font-size: 45px;
+            color: #38bdf8;
+            margin-bottom: 12px;
+        }
+        .school-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .portal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        .header p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+        button {
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: none;
+            background: #38bdf8;
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        button:hover {
+            background: #7dd3fc;
+            transform: translateY(-1px);
+        }
+        .error-msg {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .result-card {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .student-info {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 20px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            border-left: 4px solid #38bdf8;
+        }
+        .student-info div {
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .student-info div:last-child {
+            margin-bottom: 0;
+        }
+        .student-info strong {
+            color: #cbd5e1;
+        }
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .score-item {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 14px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .score-item span {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .score-item strong {
+            font-size: 16px;
+            color: #38bdf8;
+        }
+        .rank-card {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            padding: 16px;
+            border-radius: 14px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        @media (max-width: 480px) {
+            .scores-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-box {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
 
-# Konfigurasi Halaman
-st.set_page_config(
-    page_title="Portal Nilai PTS - SDN LARANGAN 05",
-    page_icon="🎓",
-    layout="wide"
-)
+<div class="container">
+    <div class="header">
+        <i class="fa-solid fa-school"></i>
+        <h1 class="school-title">SDN LARANGAN 05</h1>
+        <h2 class="portal-title">Portal Hasil Ujian PTS</h2>
+        <p>Masukkan Nomor Induk Siswa Nasional (NISN) untuk melihat hasil nilai</p>
+    </div>
 
-# Header Portal Nama Sekolah
-st.title("🏫 PORTAL HASIL BELAJAR SISWA")
-st.subheader("SDN LARANGAN 05")
-st.caption("Penilaian Tengah Semester (PTS)")
-st.divider()
+    <div class="search-box">
+        <input type="text" id="nisnInput" placeholder="Masukkan NISN (contoh: 154626032)" onkeypress="handleKeyPress(event)">
+        <button onclick="cariNilai()"><i class="fa-solid fa-magnifying-glass"></i> Cari</button>
+    </div>
 
-@st.cache_data
-def load_data(file_path):
-    # Membaca seluruh sheet yang ada di file Excel
-    excel_file = pd.ExcelFile(file_path)
-    sheet_names = excel_file.sheet_names
-    
-    # Menggabungkan data dari semua kelas/sheet
-    data_list = []
-    for sheet in sheet_names:
-        df = pd.read_excel(excel_file, sheet_name=sheet)
-        # Menambahkan kolom Kelas berdasarkan nama sheet
-        df['Kelas'] = sheet 
-        data_list.append(df)
-        
-    df_all = pd.concat(data_list, ignore_index=True)
-    
-    # Pembersihan nama kolom dari spasi berlebih
-    df_all.columns = df_all.columns.str.strip()
-    return df_all, sheet_names
+    <div id="errorMsg" class="error-msg">
+        Data NISN tidak ditemukan. Periksa kembali nomor yang Anda masukkan!
+    </div>
 
-# Membaca file Excel yang diunggah
-file_path = "NILAI PTS_2.xlsx"
+    <div id="resultCard" class="result-card">
+        <div class="student-info">
+            <div><strong>NAMA SISWA:</strong> <span id="resNama" style="color:#fff; font-size:16px; font-weight:600; margin-left:6px;"></span></div>
+            <div><strong>NISN:</strong> <span id="resNisn" style="color:#fff; margin-left:6px;"></span></div>
+        </div>
 
-try:
-    df_nilai, daftar_kelas = load_data(file_path)
+        <div class="scores-grid">
+            <div class="score-item"><span>Bahasa Indonesia</span><strong id="resIndo"></strong></div>
+            <div class="score-item"><span>Matematika</span><strong id="resMtk"></strong></div>
+            <div class="score-item"><span>IPAS</span><strong id="resIpas"></strong></div>
+            <div class="score-item"><span>PPKN</span><strong id="resPpkn"></strong></div>
+            <div class="score-item"><span>B. Jawa</span><strong id="resJawa"></strong></div>
+            <div class="score-item"><span>B. Inggris</span><strong id="resInggris"></strong></div>
+        </div>
 
-    # Sidebar Filter / Cari Data Siswa
-    st.sidebar.header("🔍 Pencarian Data Siswa")
-    
-    # Filter Kelas
-    pilihan_kelas = st.sidebar.selectbox("Pilih Kelas:", ["Semua Kelas"] + list(daftar_kelas))
-    
-    if pilihan_kelas != "Semua Kelas":
-        df_filtered = df_nilai[df_nilai['Kelas'] == pilihan_kelas]
-    else:
-        df_filtered = df_nilai.copy()
+        <div class="rank-card">
+            🏆 Peringkat Kelas: <span id="resPeringkat"></span>
+        </div>
+    </div>
+</div>
 
-    # Ambil daftar nama siswa yang valid dari file Excel
-    daftar_nama_siswa = df_filtered['NAMA SISWA'].dropna().unique().tolist()
-    
-    # Fitur Pencarian Nama Siswa
-    nama_terpilih = st.sidebar.selectbox("Pilih / Cari Nama Siswa:", sorted(daftar_nama_siswa))
+<script>
+    // Data Lengkap 34 Siswa dari File Excel NILAI PTS
+    const dataSiswa = [
+        {"NISN": "154626032", "NAMA SISWA": "ADEVA AFSHEEN MYESHA", "BAHASA INDONESIA": 87, "MATEMATIKA": 40.0, "IPAS": 34, "PPKN": 56, "B. JAWA": 44, "B. INGGRIS": 62, "PERINGKAT": 16},
+        {"NISN": "153502315", "NAMA SISWA": "ADRIAN PRADIPTA AMZARI", "BAHASA INDONESIA": 95, "MATEMATIKA": 61.7, "IPAS": 64, "PPKN": 58, "B. JAWA": 50, "B. INGGRIS": 78, "PERINGKAT": 5},
+        {"NISN": "141018034", "NAMA SISWA": "AISYAH NOREEN PUTRI WIJAYANTI", "BAHASA INDONESIA": 73, "MATEMATIKA": 41.7, "IPAS": 26, "PPKN": 42, "B. JAWA": 34, "B. INGGRIS": 42, "PERINGKAT": 24},
+        {"NISN": "146974848", "NAMA SISWA": "ARFA RAMADHANI MUZAKHY", "BAHASA INDONESIA": 53, "MATEMATIKA": 36.7, "IPAS": 20, "PPKN": 10, "B. JAWA": 22, "B. INGGRIS": 38, "PERINGKAT": 34},
+        {"NISN": "132547530", "NAMA SISWA": "ARYA DWI PRAYUDHA", "BAHASA INDONESIA": 88, "MATEMATIKA": 36.7, "IPAS": 66, "PPKN": 76, "B. JAWA": 40, "B. INGGRIS": 80, "PERINGKAT": 7},
+        {"NISN": "139617538", "NAMA SISWA": "CHERYL KHALIQA DIANDRA", "BAHASA INDONESIA": 82, "MATEMATIKA": 73.3, "IPAS": 34, "PPKN": 54, "B. JAWA": 50, "B. INGGRIS": 76, "PERINGKAT": 9},
+        {"NISN": "3155807228", "NAMA SISWA": "CINDY AULIA MAEYASIH", "BAHASA INDONESIA": 86, "MATEMATIKA": 48.3, "IPAS": 36, "PPKN": 52, "B. JAWA": 38, "B. INGGRIS": 58, "PERINGKAT": 18},
+        {"NISN": "153597418", "NAMA SISWA": "DENATA ADITIYA SETIAWAN", "BAHASA INDONESIA": 90, "MATEMATIKA": 51.7, "IPAS": 30, "PPKN": 54, "B. JAWA": 36, "B. INGGRIS": 54, "PERINGKAT": 19},
+        {"NISN": "3142460670", "NAMA SISWA": "DIDIK FERDIANSYAH", "BAHASA INDONESIA": 50, "MATEMATIKA": 51.7, "IPAS": 28, "PPKN": 30, "B. JAWA": 26, "B. INGGRIS": 30, "PERINGKAT": 32},
+        {"NISN": "3156245795", "NAMA SISWA": "FIA AULIA RAMADANI", "BAHASA INDONESIA": 77, "MATEMATIKA": 61.7, "IPAS": 42, "PPKN": 40, "B. JAWA": 42, "B. INGGRIS": 56, "PERINGKAT": 17},
+        {"NISN": "154044371", "NAMA SISWA": "GHAZZA AFKARISSAHIB HIDAYAT", "BAHASA INDONESIA": 83, "MATEMATIKA": 71.7, "IPAS": 24, "PPKN": 60, "B. JAWA": 44, "B. INGGRIS": 80, "PERINGKAT": 13},
+        {"NISN": "142334488", "NAMA SISWA": "HANA NUR KHAIRUNNISA", "BAHASA INDONESIA": 85, "MATEMATIKA": 70.0, "IPAS": 32, "PPKN": 50, "B. JAWA": 50, "B. INGGRIS": 82, "PERINGKAT": 10},
+        {"NISN": "3138839933", "NAMA SISWA": "Ilham Junjung Raja Pangihutan Purba", "BAHASA INDONESIA": 85, "MATEMATIKA": 55.0, "IPAS": 46, "PPKN": 64, "B. JAWA": 46, "B. INGGRIS": 68, "PERINGKAT": 12},
+        {"NISN": "3153395824", "NAMA SISWA": "JUNIO ABINAYA ABQORI PUTRA", "BAHASA INDONESIA": 47, "MATEMATIKA": 31.7, "IPAS": 24, "PPKN": 46, "B. JAWA": 38, "B. INGGRIS": 34, "PERINGKAT": 31},
+        {"NISN": "153581960", "NAMA SISWA": "KEISHA ANINDITA AZAHRA", "BAHASA INDONESIA": 80, "MATEMATIKA": 31.7, "IPAS": 26, "PPKN": 42, "B. JAWA": 46, "B. INGGRIS": 66, "PERINGKAT": 22},
+        {"NISN": "3144714180", "NAMA SISWA": "KHAIRA INAYA RAFA", "BAHASA INDONESIA": 95, "MATEMATIKA": 76.7, "IPAS": 52, "PPKN": 64, "B. JAWA": 58, "B. INGGRIS": 88, "PERINGKAT": 2},
+        {"NISN": "3151839552", "NAMA SISWA": "M.EMERALD PRASANDYA", "BAHASA INDONESIA": 98, "MATEMATIKA": 61.7, "IPAS": 64, "PPKN": 76, "B. JAWA": 48, "B. INGGRIS": 80, "PERINGKAT": 3},
+        {"NISN": "3153223041", "NAMA SISWA": "MEHRIMA HURY DEVRANI", "BAHASA INDONESIA": 83, "MATEMATIKA": 68.3, "IPAS": 34, "PPKN": 76, "B. JAWA": 32, "B. INGGRIS": 84, "PERINGKAT": 8},
+        {"NISN": "3144215665", "NAMA SISWA": "MUHAMMAD HAMZAH", "BAHASA INDONESIA": 75, "MATEMATIKA": 53.3, "IPAS": 48, "PPKN": 44, "B. JAWA": 44, "B. INGGRIS": 48, "PERINGKAT": 21},
+        {"NISN": "3152794656", "NAMA SISWA": "MUHAMMAD JAFAR SHODHIQ", "BAHASA INDONESIA": 87, "MATEMATIKA": 60.0, "IPAS": 56, "PPKN": 68, "B. JAWA": 50, "B. INGGRIS": 72, "PERINGKAT": 6},
+        {"NISN": "3156944630", "NAMA SISWA": "NOVEL ARDIAN HENDRIANSYAH", "BAHASA INDONESIA": 85, "MATEMATIKA": 51.7, "IPAS": 62, "PPKN": 62, "B. JAWA": 44, "B. INGGRIS": 60, "PERINGKAT": 11},
+        {"NISN": "144117169", "NAMA SISWA": "NUR INDAH PERTIWI", "BAHASA INDONESIA": 97, "MATEMATIKA": 76.7, "IPAS": 68, "PPKN": 80, "B. JAWA": 64, "B. INGGRIS": 92, "PERINGKAT": 1},
+        {"NISN": "3151438812", "NAMA SISWA": "PUTRI MAYSHARA SALSABILLAH", "BAHASA INDONESIA": 85, "MATEMATIKA": 61.7, "IPAS": 36, "PPKN": 64, "B. JAWA": 36, "B. INGGRIS": 62, "PERINGKAT": 15},
+        {"NISN": "3153383796", "NAMA SISWA": "RAFFA DWI PRASETYO", "BAHASA INDONESIA": 48, "MATEMATIKA": 48.3, "IPAS": 18, "PPKN": 52, "B. JAWA": 28, "B. INGGRIS": 32, "PERINGKAT": 29},
+        {"NISN": "3156761247", "NAMA SISWA": "RAMDHAN SAPUTRA", "BAHASA INDONESIA": 63, "MATEMATIKA": 51.7, "IPAS": 38, "PPKN": 30, "B. JAWA": 34, "B. INGGRIS": 32, "PERINGKAT": 28},
+        {"NISN": "3151567707", "NAMA SISWA": "RASYA AFIF FADILAH", "BAHASA INDONESIA": 90, "MATEMATIKA": 55.0, "IPAS": 46, "PPKN": 62, "B. JAWA": 40, "B. INGGRIS": 66, "PERINGKAT": 14},
+        {"NISN": "3154068286", "NAMA SISWA": "REHAN ARDANI RISKY", "BAHASA INDONESIA": 57, "MATEMATIKA": 58.3, "IPAS": 20, "PPKN": 38, "B. JAWA": 34, "B. INGGRIS": 46, "PERINGKAT": 25},
+        {"NISN": "3146058878", "NAMA SISWA": "RENO ANDRI PRATAMA", "BAHASA INDONESIA": 60, "MATEMATIKA": 43.3, "IPAS": 26, "PPKN": 48, "B. JAWA": 38, "B. INGGRIS": 38, "PERINGKAT": 25},
+        {"NISN": "149638412", "NAMA SISWA": "REZA ARDIANSYAH", "BAHASA INDONESIA": 73, "MATEMATIKA": 66.7, "IPAS": 16, "PPKN": 26, "B. JAWA": 30, "B. INGGRIS": 38, "PERINGKAT": 27},
+        {"NISN": "3157074853", "NAMA SISWA": "SAKINAH AQILA LAILATUL ZAHWA", "BAHASA INDONESIA": 78, "MATEMATIKA": 43.3, "IPAS": 28, "PPKN": 52, "B. JAWA": 40, "B. INGGRIS": 72, "PERINGKAT": 20},
+        {"NISN": "3146228593", "NAMA SISWA": "SALSABILAH NADHIFFA", "BAHASA INDONESIA": 50, "MATEMATIKA": 50.0, "IPAS": 22, "PPKN": 30, "B. JAWA": 32, "B. INGGRIS": 42, "PERINGKAT": 30},
+        {"NISN": "3147151905", "NAMA SISWA": "SALWA AZIZAH ALMIRA", "BAHASA INDONESIA": 45, "MATEMATIKA": 41.7, "IPAS": 20, "PPKN": 28, "B. JAWA": 24, "B. INGGRIS": 30, "PERINGKAT": 33},
+        {"NISN": "155720356", "NAMA SISWA": "WACHYU RADJA", "BAHASA INDONESIA": 88, "MATEMATIKA": 58.3, "IPAS": 60, "PPKN": 68, "B. JAWA": 60, "B. INGGRIS": 82, "PERINGKAT": 4},
+        {"NISN": "3151498786", "NAMA SISWA": "ZESLIA", "BAHASA INDONESIA": 63, "MATEMATIKA": 45.0, "IPAS": 20, "PPKN": 52, "B. JAWA": 36, "B. INGGRIS": 52, "PERINGKAT": 23}
+    ];
 
-    # Tampilan Detail Nilai Siswa
-    if nama_terpilih:
-        data_siswa = df_filtered[df_filtered['NAMA SISWA'] == nama_terpilih].iloc[0]
-        
-        st.header(f"👤 Laporan Nilai: {data_siswa['NAMA SISWA']}")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown(f"**Sekolah:** SDN LARANGAN 05")
-            st.markdown(f"**Kelas:** {data_siswa.get('Kelas', '-')}")
-            if 'NIS' in data_siswa:
-                st.markdown(f"**NIS:** {data_siswa['NIS']}")
-        with col2:
-            if 'NISN' in data_siswa:
-                st.markdown(f"**NISN:** {data_siswa['NISN']}")
+    function cariNilai() {
+        // Membersihkan input dari spasi yang tidak disengaja
+        const inputRaw = document.getElementById('nisnInput').value;
+        const nisnVal = inputRaw.replace(/\s+/g, ''); 
+        const errorMsg = document.getElementById('errorMsg');
+        const resultCard = document.getElementById('resultCard');
 
-        st.divider()
-        st.subheader("📊 Rincian Nilai Mata Pelajaran")
+        if (!nisnVal) {
+            errorMsg.innerText = "Harap masukkan NISN terlebih dahulu!";
+            errorMsg.style.display = 'block';
+            resultCard.style.display = 'none';
+            return;
+        }
 
-        # Mengambil kolom nilai pelajaran (mengabaikan data identitas)
-        kolom_identitas = ['NO', 'NIS', 'NISN', 'NAMA SISWA', 'JK', 'Kelas', 'JUMLAH', 'RATA-RATA', 'PERINGKAT']
-        kolom_mapel = [col for col in df_nilai.columns if col not in kolom_identitas]
+        // Pencarian Cerdas (Mendukung Teks maupun Angka)
+        const siswa = dataSiswa.find(s => String(s.NISN).trim() === nisnVal);
 
-        # Membuat tabel rangkuman nilai mata pelajaran
-        dict_nilai = {mapel: [data_siswa[mapel]] for mapel in kolom_mapel if mapel in data_siswa and pd.notna(data_siswa[mapel])}
-        df_tampil_nilai = pd.DataFrame(dict_nilai).T.reset_index()
-        df_tampil_nilai.columns = ["Mata Pelajaran", "Nilai"]
-        
-        st.dataframe(df_tampil_nilai, hide_index=True, use_container_width=True)
+        if (siswa) {
+            errorMsg.style.display = 'none';
+            
+            document.getElementById('resNama').innerText = siswa['NAMA SISWA'];
+            document.getElementById('resNisn').innerText = siswa['NISN'];
+            document.getElementById('resIndo').innerText = siswa['BAHASA INDONESIA'];
+            document.getElementById('resMtk').innerText = siswa['MATEMATIKA'];
+            document.getElementById('resIpas').innerText = siswa['IPAS'];
+            document.getElementById('resPpkn').innerText = siswa['PPKN'];
+            document.getElementById('resJawa').innerText = siswa['B. JAWA'];
+            document.getElementById('resInggris').innerText = siswa['B. INGGRIS'];
+            document.getElementById('resPeringkat').innerText = siswa['PERINGKAT'];
 
-        # Ringkasan Total & Rata-rata (jika ada di file Excel)
-        st.divider()
-        col_stat1, col_stat2 = st.columns(2)
-        if 'JUMLAH' in data_siswa and pd.notna(data_siswa['JUMLAH']):
-            col_stat1.metric("Total Nilai", f"{data_siswa['JUMLAH']}")
-        if 'RATA-RATA' in data_siswa and pd.notna(data_siswa['RATA-RATA']):
-            col_stat2.metric("Rata-Rata Nilai", f"{data_siswa['RATA-RATA']:.2f}")
+            resultCard.style.display = 'block';
+        } else {
+            errorMsg.innerText = "NISN '" + inputRaw + "' tidak ditemukan. Periksa kembali nomor yang Anda masukkan!";
+            errorMsg.style.display = 'block';
+            resultCard.style.display = 'none';
+        }
+    }
 
-except FileNotFoundError:
-    st.error(f"File '{file_path}' tidak ditemukan. Pastikan file tersimpan di direktori yang sama.")
-except Exception as e:
-    st.error(f"Terjadi kesalahan saat membaca file: {e}")
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            cariNilai();
+        }
+    }
+</script>
+
+</body>
+</html>
