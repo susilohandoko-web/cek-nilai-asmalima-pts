@@ -289,3 +289,104 @@
 
 </body>
 </html>
+import streamlit as st
+import pandas as pd
+
+# Konfigurasi Halaman
+st.set_page_config(
+    page_title="Portal Nilai PTS - SDN LARANGAN 05",
+    page_icon="🎓",
+    layout="wide"
+)
+
+# Header Portal Nama Sekolah
+st.title("🏫 PORTAL HASIL BELAJAR SISWA")
+st.subheader("SDN LARANGAN 05")
+st.caption("Penilaian Tengah Semester (PTS)")
+st.divider()
+
+@st.cache_data
+def load_data(file_path):
+    # Membaca seluruh sheet yang ada di file Excel
+    excel_file = pd.ExcelFile(file_path)
+    sheet_names = excel_file.sheet_names
+    
+    # Menggabungkan data dari semua kelas/sheet
+    data_list = []
+    for sheet in sheet_names:
+        df = pd.read_excel(excel_file, sheet_name=sheet)
+        # Menambahkan kolom Kelas berdasarkan nama sheet
+        df['Kelas'] = sheet 
+        data_list.append(df)
+        
+    df_all = pd.concat(data_list, ignore_index=True)
+    
+    # Pembersihan nama kolom dari spasi berlebih
+    df_all.columns = df_all.columns.str.strip()
+    return df_all, sheet_names
+
+# Membaca file Excel yang diunggah
+file_path = "NILAI PTS_2.xlsx"
+
+try:
+    df_nilai, daftar_kelas = load_data(file_path)
+
+    # Sidebar Filter / Cari Data Siswa
+    st.sidebar.header("🔍 Pencarian Data Siswa")
+    
+    # Filter Kelas
+    pilihan_kelas = st.sidebar.selectbox("Pilih Kelas:", ["Semua Kelas"] + list(daftar_kelas))
+    
+    if pilihan_kelas != "Semua Kelas":
+        df_filtered = df_nilai[df_nilai['Kelas'] == pilihan_kelas]
+    else:
+        df_filtered = df_nilai.copy()
+
+    # Ambil daftar nama siswa yang valid dari file Excel
+    daftar_nama_siswa = df_filtered['NAMA SISWA'].dropna().unique().tolist()
+    
+    # Fitur Pencarian Nama Siswa
+    nama_terpilih = st.sidebar.selectbox("Pilih / Cari Nama Siswa:", sorted(daftar_nama_siswa))
+
+    # Tampilan Detail Nilai Siswa
+    if nama_terpilih:
+        data_siswa = df_filtered[df_filtered['NAMA SISWA'] == nama_terpilih].iloc[0]
+        
+        st.header(f"👤 Laporan Nilai: {data_siswa['NAMA SISWA']}")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(f"**Sekolah:** SDN LARANGAN 05")
+            st.markdown(f"**Kelas:** {data_siswa.get('Kelas', '-')}")
+            if 'NIS' in data_siswa:
+                st.markdown(f"**NIS:** {data_siswa['NIS']}")
+        with col2:
+            if 'NISN' in data_siswa:
+                st.markdown(f"**NISN:** {data_siswa['NISN']}")
+
+        st.divider()
+        st.subheader("📊 Rincian Nilai Mata Pelajaran")
+
+        # Mengambil kolom nilai pelajaran (mengabaikan data identitas)
+        kolom_identitas = ['NO', 'NIS', 'NISN', 'NAMA SISWA', 'JK', 'Kelas', 'JUMLAH', 'RATA-RATA', 'PERINGKAT']
+        kolom_mapel = [col for col in df_nilai.columns if col not in kolom_identitas]
+
+        # Membuat tabel rangkuman nilai mata pelajaran
+        dict_nilai = {mapel: [data_siswa[mapel]] for mapel in kolom_mapel if mapel in data_siswa and pd.notna(data_siswa[mapel])}
+        df_tampil_nilai = pd.DataFrame(dict_nilai).T.reset_index()
+        df_tampil_nilai.columns = ["Mata Pelajaran", "Nilai"]
+        
+        st.dataframe(df_tampil_nilai, hide_index=True, use_container_width=True)
+
+        # Ringkasan Total & Rata-rata (jika ada di file Excel)
+        st.divider()
+        col_stat1, col_stat2 = st.columns(2)
+        if 'JUMLAH' in data_siswa and pd.notna(data_siswa['JUMLAH']):
+            col_stat1.metric("Total Nilai", f"{data_siswa['JUMLAH']}")
+        if 'RATA-RATA' in data_siswa and pd.notna(data_siswa['RATA-RATA']):
+            col_stat2.metric("Rata-Rata Nilai", f"{data_siswa['RATA-RATA']:.2f}")
+
+except FileNotFoundError:
+    st.error(f"File '{file_path}' tidak ditemukan. Pastikan file tersimpan di direktori yang sama.")
+except Exception as e:
+    st.error(f"Terjadi kesalahan saat membaca file: {e}")
